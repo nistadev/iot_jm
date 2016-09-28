@@ -5,154 +5,92 @@ import os
 import ifaddr
 import time
 import RPi.GPIO as GPIO
+from gpiozero import LED, Button
 
 #Execucions previes
 GPIO.setmode(GPIO.BCM)
 
-#Classes
-class Button:
-    def __init__(self, pin, mode):
-	self._pin = pin
-	self._status = False
-	self._mode = mode
-	
-    def declare(self):
-	GPIO.setup(self._pin, GPIO.IN, pull_up_down=self._mode)
-
-    def status(self):
-	return self._status
-
-    def set_status(self, value):
-	""" Set the status of the button. True while it is pressed, False otherwise """
-	if value == 1:
-	    self._status = True
-	elif value == 0:
-	    self._status = False
-
-class LED:
-    def __init__(self, pin, color):
-	self._pin = pin
-	self._color = color
-	self._status = False
-
-    def declare(self):
-	GPIO.setup(self._pin, GPIO.OUT)
-
-    def status(self):
-	return self._status
-
-    def color(self):
-	return self._color	
-
-    def turn_on(self):
-	if not self._status:
-	    GPIO.output(self._pin, True)
-	    self._status = True
-	else:
-	    pass
-
-    def turn_off(self):
-	if self._status:
-	    GPIO.output(self._pin, False)
-	    self._status = False
-	else:
-	    pass
-
-
 #Variables globals
+BUTTON1 = 6
+BUTTON2 = 5
+BUTTON3 = 25
+BUTTON4 = 24
 APON = 0
 ETHON = 0
 adapters = ifaddr.get_adapters()
 INTFC = "eth0"
-tries = 0
-program_1 = False
-program_2 = False
-program_3 = False
+apretat = 0
+seconds = 0.5
 
-#Variables Objecte
-button_1 = Button(6, GPIO.PUD_DOWN)
-button_2 = Button(5, GPIO.PUD_DOWN)
-button_3 = Button(25, GPIO.PUD_DOWN)
-button_4 = Button(24, GPIO.PUD_DOWN)
-
-#Declarem els botons
-button_1.declare()
-button_2.declare()
-button_3.declare()
-button_4.declare()
+#Inicialitacio components GPIO
+GPIO.setup(BUTTON1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON4, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 #Funcio principal per a comprovar la connexio, basada en si tenim una IP assignada.
 def adapter_check():
-    """ Check if adapter has an IP """
-    global tries
+    global ETHON
+    """ Comprova si l'adaptador te una IP """
     for adapter in adapters:
     	if adapter.name == INTFC:
             print("L'adaptador esta online i te assignada la IP {}".format(adapter.ips[0].ip))
-            ETHON = True
+            ETHON = 1
 	else:
 	    pass
 
-    tries += 1
+adapter_check()
 
-#Converteix el valor bolea en un numero binari i, en cas de que no tinguem IP assignada, ho torna a comprovar 3 vegades abans de continuar.
-if ETHON:
-    ETHON = 1
-else:
-    if tries <=2:
-	adapter_check()
-    else:
-        ETHON = 0
+def ts(temps):
+    """ Retorna una pausa del temps especificat en segons """
+    return time.sleep(temps)
 
-#Entra en el programa corresponent al boto donant el numero i si no ens trobem dins de un altre programa
 def enter_program(number):
-    #global program_1, program_2, program_3
-    if (number == 1) and (not program_1) and (not program_2):
-	program_1 = True
-	os.system("python program.py {0}".format(ETHON))
-	print("Execucio despres del programa")
-	time.sleep(1)
-	print("yeahh")
-	GPIO.cleanup()
-	exit()
+    """ Entra en el programa corresponent al boto donant el numero i si no ens trobem dins de un altre programa """
+    if (number == 1):
+	print(ETHON)
+	os.system("python program.py {0}".format(ETHON))	
+	ts(seconds)
+	pre_boto()
 
-    elif (number == 2) and (not program_1) and (not program_2):
-	program_2 = True
-	os.system("python test.py")
-	print("Execucio despres del programa")
-	time.sleep(1)
-	print("Si, es despres del programa.")
-	GPIO.cleanup()
-	exit()
+    elif (number == 2):
+	os.system("python tester.py")
+	ts(seconds)
+	pre_boto()
 
-    elif (number == 3) and (not program_1) and (not program_2):
-	#program_3 = True
+    elif (number == 3):
 	pass
 
     elif number == 4:
-	GPIO.cleanup()
 	exit()
 
+def pre_boto():
+    print("Premi un boto per a executar el programa que vulgui")
+    while True:
+        """ Loop que comprova si un usuari ha apretat algun boto i executa la funcio que obrira el programa corresponent """ 
+        button_1 = GPIO.input(6)
+	button_2 = GPIO.input(5)
+	button_3 = GPIO.input(25)
+	button_4 = GPIO.input(24)
+	
+        #Comprovem quin es el boto que ha apretat l'usuari i executem la funcio que obria el programa.
+	#print(button_1, button_2, button_3, button_4)	
+        if button_1 == apretat:
+	    ts(seconds)
+	    enter_program(1)
 
-while True:
-    """ Loop que comprova si un usuari ha apretat algun boto i executa la funcio que obrira el programa corresponent """
+        if button_2 == apretat:
+	    ts(seconds)
+    	    enter_program(2)
 
-    while (not button_1.status()) and (not button_2.status()) and (not button_3.status()) and (not button_4.status()):
-	""" Aquest loop es per evitar que varies execucions del programa si l'usuari continua apretant botons """
-    	button_1.set_status(GPIO.input(6))
-    	button_2.set_status(GPIO.input(5))
-    	#button_3.set_status(GPIO.input(25))
-    	button_4.set_status(GPIO.input(24))
+        if button_3 == apretat:
+	    #ts(seconds)
+	    #enter_program(3)
+	    pass
 
-    #Comprovem quin es el boto que ha apretat l'usuari i executem la funcio que obria el programa.
-    if button_1.status():
-	enter_program(1)
+        if button_4 == apretat:
+	    ts(seconds)
+	    enter_program(4)
+	
 
-    elif button_2.status():
-	enter_program(2)
-
-    elif button_3.status():
-	#enter_program(3)
-	pass
-
-    elif button_4.status():
-	enter_program(4)
+pre_boto()
