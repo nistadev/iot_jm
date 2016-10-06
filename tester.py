@@ -107,11 +107,11 @@ while True:
             testing = True
             ts(seconds)
             if tsl.foundSensor():
-                tsl.setGain(tsl.GAIN_16X); #Pot ser 0X o 16X
+                tsl.setGain(tsl.GAIN_16X); #Pot ser 0X o 16X, amb 0X ens dona valors mot petits, no concorden amb la realitat.
                 tsl.setTiming(tsl.INTEGRATIONTIME_13MS)
                 full = tsl.getLuminosity(tsl.FULLSPECTRUM)
                 infrared = tsl.getLuminosity(tsl.INFRARED)
-                print("Lux: {}".format(tsl.calculateLux(full, infrared)))
+                print("Lux: {0}".format(tsl.calculateLux(full, infrared)))
             else:
                 print("Hi ha sensor?")
             testing = False
