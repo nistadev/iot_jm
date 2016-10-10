@@ -11,36 +11,19 @@ import sys, os, time
 import RPi.GPIO as GPIO
 import Adafruit_DHT as DHT
 from valorlux import *
+from needs import *
 
 #Inicialitzacions previes
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
+inicialitza()
 
 #Variables Globals
-BUTTON1 = 6
-BUTTON2 = 5
-BUTTON3 = 25
-BUTTON4 = 24
-LED1 = 23
-LED2 = 18
-LED3 = 17
 DHT_TYPE = DHT.DHT22
 DHT_PIN = 13 
 apretat = 0
 seconds = 0.5
-actiu = 0
 led_1 = False
 led_2 = False
 led_3 = False
-
-#Inicialitacio components GPIO
-GPIO.setup(BUTTON1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON4, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(LED1, GPIO.OUT)
-GPIO.setup(LED2, GPIO.OUT)
-GPIO.setup(LED3, GPIO.OUT)
 
 #Variables objecte
 button_1 = GPIO.input(BUTTON1)
@@ -50,27 +33,6 @@ button_4 = GPIO.input(BUTTON4)
 tsl = TSL2561()
 
 # Funcions
-def ts(temps):
-    """ Retorna un temps d'espera basat en parametre del temps que agafem """
-    return time.sleep(temps)
-
-def primer():
-    """ Funcio que ens diu que estem en aquest programa i que fa una senyal visual amb els leds per a saber-ho """
-
-    print("\nEsteu en el programa de fer proves. Utilitzi els botons per a provar els diferents components.")
-
-    val = True
-    for i in range(6):
-        """ Encen i apaga els leds segons la variable val """
-        GPIO.output(LED1, val)
-        GPIO.output(LED2, val)
-        GPIO.output(LED3, val)
-        ts(0.1)
-        if val:
-            val = False
-        elif not val:
-            val = True 
-
 def gethyt():
     """ Guarda les dades llegides per el sensor de temperatura i humitat en les respectives variables globals """
     global hum, temp
@@ -79,7 +41,7 @@ def gethyt():
 
 """ Inici del programa """
 
-primer() # Executem la funcio d'inici abans d'entrar al loop
+program_running(2) # Executem la funcio d'inici abans d'entrar al loop
 
 while True:
     """ --------------------------------------------------------------
@@ -103,53 +65,72 @@ while True:
         button_4 = GPIO.input(BUTTON4)
 
         # Comprovem si l'usuari ha apretat algun boto i executem les accions en cas afirmatiu.
-        if button_1 == actiu and not testing:
+        if (button_1 == actiu) and (not testing):
             testing = True
+            print("Calculant els lux...")
+            GPIO.output(LED3, True)
             ts(seconds)
             if tsl.foundSensor():
                 tsl.setGain(tsl.GAIN_16X); #Pot ser 0X o 16X
                 tsl.setTiming(tsl.INTEGRATIONTIME_13MS)
                 visible = tsl.getLuminosity(tsl.VISIBLE)
                 print("Lux: {0}".format(visible))
+                GPIO.output(LED3, False) # Encenem i apaguem els LEDs de vermell a verd per indicar
+                GPIO.output(LED2, True)  # a l'usuari que hem captat les dades correctament.
+                ts(seconds)
+                GPIO.output(LED2, False)
+                GPIO.output(LED1, True)
+                ts(seconds)
+                GPIO.output(LED1, False)
             else:
-                print("Hi ha sensor?")
+                print("Error. Hi ha sensor?")
             testing = False
 	
-        if button_2 == actiu and not testing:
+        if (button_2 == actiu) and (not testing):
             testing = True
             ts(seconds)
+            print("Calculant la temperatura i la humitat...")
+            GPIO.output(LED3, True)
             gethyt()
-            if hum != None and temp != None:
+            if (hum != None) and (temp != None):
                 print("Temperatura: {0:0.1f}".format(temp))
-                print("Humiditat: {0:0.1f}".format(hum))
-                testing = False
+                print("Humitat: {0:0.1f}\n".format(hum))
+                GPIO.output(LED3, False)
+                GPIO.output(LED2, True)
+                ts(seconds)
+                GPIO.output(LED2, False)
+                GPIO.output(LED1, True)
+                ts(seconds)
+                GPIO.output(LED1, False)
             else:
-                if pases < 3:
-                    gethyt()
-                else:
-                    testing = False
+                print("Error al captar les dades amb el sensor, torneu-ho a provar mes tard.\n")
+            testing = False
 	
-        if button_3 == actiu:
+        if (button_3 == actiu):
             ts(seconds)
             # Comprovem en quina fase de l'accio es troba per determinar si encenem/apaguem un led
             if (led_1 != True) and (led_2 != True) and (led_3 != True):
                 led_1 = True
-                GPIO.output(LED1, True)
+                print("Encenent el LED verd...") # Mostrem per pantalla l'estat en el que ens trobem per a 
+                GPIO.output(LED1, True)          # dornar mes informacio a l'usuari.
 
-            elif led_1 != False:
+            elif (led_1 != False):
                 led_1 = False
                 GPIO.output(LED1, False)
                 led_2 = True
+                print("Encenent el LED groc...")
                 GPIO.output(LED2, True)
 
-            elif led_2 != False:
+            elif (led_2 != False):
                 led_2 = False
                 GPIO.output(LED2, False)
                 led_3 = True
+                print("Encenent el LED vermell...")
                 GPIO.output(LED3, True)
-	    
-            elif led_3 != False:
+
+            elif (led_3 != False):
                 led_3 = False
+                print("LEDs apagats.\n")
                 GPIO.output(LED3, False)
 
     # Per evitar tenir algun dispositiu lluminos ences al sortir del programa, els parem tots.
