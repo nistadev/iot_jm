@@ -7,7 +7,8 @@
 
 
 import RPi.GPIO as GPIO
-import time
+import time, sys
+sys.path.insert(0, './.dades_lux')
 
 #Constants i variables
 BUTTON1 = 6
@@ -41,6 +42,14 @@ def ts(temps):
     """ Retorna una pausa del temps especificat en segons """
     return time.sleep(temps)
 
+def encen(led):
+    """ Encen el led que passem per al parametre """
+    return GPIO.output(led, True)
+
+def apaga(led):
+    """ Apaga el led que passem per al parametre """
+    return GPIO.output(led, False)
+
 def program_running(number):
     """ Funcio que mostra de manera visual en el programa que ens trobem segons el parametre """
     global led_1, led_2, led_3
@@ -49,13 +58,16 @@ def program_running(number):
         val = True
         for i in range(2):
             """ Encen i apaga els leds alhora, segons la variable val """
-            GPIO.output(LED1, val)
-            GPIO.output(LED2, val)
-            GPIO.output(LED3, val)
-            ts(2)
             if val:
+                encen(LED1)
+                encen(LED2)
+                encen(LED3)
+                ts(2)
                 val = False
             elif not val:
+                apaga(LED1)
+                apaga(LED2)
+                apaga(LED3)
                 val = True
 
     elif number == 1:
@@ -65,24 +77,24 @@ def program_running(number):
             """ Encen i apaga els leds un darrere l'altre """
             if (led_1 != True) and (led_2 != True) and (led_3 != True):
                 led_1 = True
-                GPIO.output(LED1, True)
-                ts(.15)
+                encen(LED1)
+                ts(.13)
             elif led_1 != False:
                 led_1 = False
-                GPIO.output(LED1, False)
+                apaga(LED1)
                 led_2 = True
-                GPIO.output(LED2, True)
-                ts(.15)
+                encen(LED2)
+                ts(.13)
             elif led_2 != False:
                 led_2 = False
-                GPIO.output(LED2, False)
+                apaga(LED2)
                 led_3 = True
-                GPIO.output(LED3, True)
-                ts(.15)
+                encen(LED3)
+                ts(.13)
             elif led_3 != False:
                 led_3 = False
-                GPIO.output(LED3, False)
-                ts(.15)
+                apaga(LED3)
+                ts(.13)
             num += 1
 
     elif number == 2:
@@ -90,11 +102,14 @@ def program_running(number):
         val = True
         for i in range(6):
             """ Encen i apaga els leds segons la variable val """
-            GPIO.output(LED1, val)
-            GPIO.output(LED2, val)
-            GPIO.output(LED3, val)
-            ts(0.1)
             if val:
+                encen(LED1)
+                encen(LED2)
+                encen(LED3)
+                ts(.1)
                 val = False
             elif not val:
+                apaga(LED1)
+                apaga(LED2)
+                apaga(LED3)
                 val = True
