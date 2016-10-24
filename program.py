@@ -5,6 +5,30 @@ Aquest programa envia les dades al nuvol, a un full de calcul de Google en cas d
 sino crea un fitxer on hi desa les dades capturades en un mateix dia. També envia les dades guardades
 si l'usuari vol fer-ho.
 
+Tot el programari que forma part de la llibreria del sensor de humitat i llum, estan subjectes a la següent llicència, 
+tal i com l'autor inicial l'ha distribuït:
+
+The MIT License (MIT)
+
+Copyright (c) 2014 Adafruit Industries
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 #Llibreries
@@ -32,9 +56,8 @@ GSPREAD = "Dades de Llum, Temperatura i Humitat" # Nom de la nostra fulla de cal
 fullcalcul = None 
 tsl = TSL2561() # Sensor de lluminositat
 in_progress = False
-avui = datetime.datetime.today()
-diaAvui = '{:%Y/%m/%d}'.format(avui) # Data d'avui en format AAAA/MM/DD
-nomFitxer = "{:%Y-%m-%d}.json".format(avui) # Nom del fitxer basat en la data d'avui.
+diaAvui = '{:%Y/%m/%d}'.format(datetime.datetime.today()) # Data d'avui en format AAAA/MM/DD
+nomFitxer = "{:%Y-%m-%d}.json".format(datetime.datetime.today()) # Nom del fitxer basat en la data d'avui.
 dadesNoves = {} # Diccionari per a guardar dades noves en fitxer.
 
 #Funcions
@@ -79,7 +102,7 @@ def humitempilux():
     else:
         lux = "Error" #Si no troba sensor, envia el valor "Error"
 
-    hora = "{:%Y/%m/%d %H:%M:%S}".format(avui) # Guarda la hora en format AAAA/MM/DD hh:mm:ss
+    hora = "{:%Y/%m/%d %H:%M:%S}".format(datetime.datetime.today()) # Guarda la hora en format AAAA/MM/DD hh:mm:ss
 
 
 def enviar():
